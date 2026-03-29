@@ -903,8 +903,8 @@ code {
   }
 
   .viewer {
-    min-height: 52vh;
-    max-height: 62vh;
+    min-height: 0;
+    max-height: none;
     padding: 18px 14px;
   }
 
