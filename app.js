@@ -737,17 +737,27 @@ function setTabsSectionVisibility(isVisible) {
 }
 
 function encodeConcertPlan(items) {
-  try {
-    return btoa(unescape(encodeURIComponent(JSON.stringify(items))))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/g, '');
-  } catch (error) {
-    return '';
-  }
+  const indices = items
+    .map((fileName) => allTabs.indexOf(fileName))
+    .filter((index) => index >= 0)
+    .map((index) => index.toString(36));
+
+  return indices.join('.');
 }
 
 function decodeConcertPlan(value) {
+  if (!value) {
+    return [];
+  }
+
+  if (value.includes('.')) {
+    return value
+      .split('.')
+      .map((chunk) => Number.parseInt(chunk, 36))
+      .filter((index) => Number.isInteger(index) && index >= 0 && index < allTabs.length)
+      .map((index) => allTabs[index]);
+  }
+
   try {
     const padded = value.replace(/-/g, '+').replace(/_/g, '/');
     const normalized = padded + '='.repeat((4 - (padded.length % 4 || 4)) % 4);
@@ -808,6 +818,9 @@ function updateConcertShareUi() {
   concertShareLink.value = shareUrl;
   concertShareStatus.textContent = 'Scanne ce QR code pour recuperer la setlist sur mobile.';
   concertShareQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(shareUrl)}`;
+  concertShareQr.onerror = () => {
+    concertShareStatus.textContent = 'QR code indisponible. Utilise le bouton Copier le lien.';
+  };
 }
 
 function importConcertPlanFromUrl() {
@@ -2022,8 +2035,8 @@ concertShare.addEventListener('click', () => {
     return;
   }
 
-  updateConcertShareUi();
   setConcertShareVisibility(true);
+  updateConcertShareUi();
 });
 
 concertShareClose.addEventListener('click', () => {

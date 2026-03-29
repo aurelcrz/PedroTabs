@@ -1,5 +1,5 @@
-const STATIC_CACHE = 'pedrotabs-static-v3';
-const DYNAMIC_CACHE = 'pedrotabs-dynamic-v3';
+const STATIC_CACHE = 'pedrotabs-static-v4';
+const DYNAMIC_CACHE = 'pedrotabs-dynamic-v4';
 
 const APP_SHELL = [
   '/',
