@@ -190,7 +190,8 @@ function sendJson(response, statusCode, payload) {
   response.writeHead(statusCode, {
     'Content-Type': 'application/json; charset=utf-8',
     'Content-Length': Buffer.byteLength(body),
-    'Cache-Control': 'no-store'
+    'Cache-Control': 'no-store',
+    'X-Robots-Tag': 'noindex, nofollow, noarchive'
   });
   response.end(body);
 }
@@ -198,7 +199,8 @@ function sendJson(response, statusCode, payload) {
 function sendText(response, statusCode, body, contentType = 'text/plain; charset=utf-8') {
   response.writeHead(statusCode, {
     'Content-Type': contentType,
-    'Content-Length': Buffer.byteLength(body)
+    'Content-Length': Buffer.byteLength(body),
+    'X-Robots-Tag': 'noindex, nofollow, noarchive'
   });
   response.end(body);
 }
@@ -208,7 +210,8 @@ async function sendFile(response, filePath) {
   response.writeHead(200, {
     'Content-Type': getContentType(filePath),
     'Content-Length': body.length,
-    'Cache-Control': filePath.endsWith('.txt') ? 'no-store' : 'public, max-age=300'
+    'Cache-Control': filePath.endsWith('.txt') ? 'no-store' : 'public, max-age=300',
+    'X-Robots-Tag': 'noindex, nofollow, noarchive'
   });
   response.end(body);
 }

@@ -924,25 +924,54 @@ function playChord(variant, arpeggio = false) {
       return;
     }
 
-    const start = now + (arpeggio ? orderIndex * 0.08 : orderIndex * 0.03);
-    const gain = context.createGain();
-    const oscillator = context.createOscillator();
-    const filter = context.createBiquadFilter();
+    const start = now + (arpeggio ? orderIndex * 0.14 : orderIndex * 0.04);
+    const duration = arpeggio ? 1.85 : 1.25;
+    const bodyGain = context.createGain();
+    const brightnessGain = context.createGain();
+    const masterGain = context.createGain();
+    const bodyOscillator = context.createOscillator();
+    const brightnessOscillator = context.createOscillator();
+    const lowpass = context.createBiquadFilter();
+    const highpass = context.createBiquadFilter();
 
-    oscillator.type = arpeggio ? 'triangle' : 'sine';
-    oscillator.frequency.setValueAtTime(frequency, start);
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(arpeggio ? 2400 : 2000, start);
-    gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.linearRampToValueAtTime(arpeggio ? 0.12 : 0.09, start + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + (arpeggio ? 1.2 : 1.0));
+    bodyOscillator.type = 'triangle';
+    bodyOscillator.frequency.setValueAtTime(frequency, start);
+    bodyOscillator.detune.setValueAtTime(index * 1.8, start);
 
-    oscillator.connect(filter);
-    filter.connect(gain);
-    gain.connect(context.destination);
+    brightnessOscillator.type = 'sine';
+    brightnessOscillator.frequency.setValueAtTime(frequency * 2, start);
+    brightnessOscillator.detune.setValueAtTime(-index * 2.2, start);
 
-    oscillator.start(start);
-    oscillator.stop(start + (arpeggio ? 1.25 : 1.05));
+    lowpass.type = 'lowpass';
+    lowpass.frequency.setValueAtTime(arpeggio ? 2500 : 2200, start);
+    lowpass.Q.setValueAtTime(0.8, start);
+
+    highpass.type = 'highpass';
+    highpass.frequency.setValueAtTime(70, start);
+
+    bodyGain.gain.setValueAtTime(0.0001, start);
+    bodyGain.gain.linearRampToValueAtTime(arpeggio ? 0.11 : 0.085, start + 0.018);
+    bodyGain.gain.exponentialRampToValueAtTime(0.0012, start + duration * 0.78);
+    bodyGain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+    brightnessGain.gain.setValueAtTime(0.0001, start);
+    brightnessGain.gain.linearRampToValueAtTime(arpeggio ? 0.03 : 0.022, start + 0.01);
+    brightnessGain.gain.exponentialRampToValueAtTime(0.0001, start + duration * 0.28);
+
+    masterGain.gain.setValueAtTime(1, start);
+
+    bodyOscillator.connect(bodyGain);
+    brightnessOscillator.connect(brightnessGain);
+    bodyGain.connect(lowpass);
+    brightnessGain.connect(lowpass);
+    lowpass.connect(highpass);
+    highpass.connect(masterGain);
+    masterGain.connect(context.destination);
+
+    bodyOscillator.start(start);
+    brightnessOscillator.start(start);
+    bodyOscillator.stop(start + duration);
+    brightnessOscillator.stop(start + duration * 0.45);
   });
 }
 
