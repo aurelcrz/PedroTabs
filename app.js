@@ -74,6 +74,22 @@ const concertShareStatus = document.querySelector('#concert-share-status');
 const concertShareQr = document.querySelector('#concert-share-qr');
 const concertShareLink = document.querySelector('#concert-share-link');
 const concertCopyLink = document.querySelector('#concert-copy-link');
+const chordModal = document.querySelector('#chord-modal');
+const chordModalClose = document.querySelector('#chord-modal-close');
+const chordModalTitle = document.querySelector('#chord-modal-title');
+const chordModalSubtitle = document.querySelector('#chord-modal-subtitle');
+const chordModalPrev = document.querySelector('#chord-modal-prev');
+const chordModalNext = document.querySelector('#chord-modal-next');
+const chordModalVariantLabel = document.querySelector('#chord-modal-variant-label');
+const chordModalNotes = document.querySelector('#chord-modal-notes');
+const chordModalFamily = document.querySelector('#chord-modal-family');
+const chordModalFormula = document.querySelector('#chord-modal-formula');
+const chordModalShapeLabel = document.querySelector('#chord-modal-shape-label');
+const chordModalShape = document.querySelector('#chord-modal-shape');
+const chordModalFingers = document.querySelector('#chord-modal-fingers');
+const chordModalAliases = document.querySelector('#chord-modal-aliases');
+const chordPlayStrum = document.querySelector('#chord-play-strum');
+const chordPlayArpeggio = document.querySelector('#chord-play-arpeggio');
 
 let allTabs = [];
 let activeFile = null;
@@ -100,9 +116,13 @@ let metronomeBeat = 0;
 let tapTempoTimes = [];
 let isConcertPlannerOpen = false;
 let isConcertShareOpen = false;
+let isChordModalOpen = false;
 let concertPlan = [];
 let concertPlanFilter = '';
 let concertPlanIndex = -1;
+let chordAudioContext = null;
+let activeModalChord = null;
+let activeModalChordVariantIndex = 0;
 let appConfig = {
   features: {
     remoteImport: false
@@ -155,6 +175,16 @@ const noteAliases = {
   'Cb': 'B',
   'Fb': 'E'
 };
+const chordTokenPattern = /(^|[^A-Za-z0-9])([A-G](?:#|b)?)(maj7|maj9|maj|min|m13|m11|m9|m7b5|m7|m6|m|sus2|sus4|sus|add9|add11|add13|dim7|dim|aug|13|11|9|7|6|5|4|2)?(?:\/([A-G](?:#|b)?))?(?=$|[^A-Za-z0-9])/g;
+const standardTuningFrequencies = [82.41, 110.0, 146.83, 196.0, 246.94, 329.63];
+const openStringNotes = {
+  E: 'E',
+  A: 'A',
+  D: 'D',
+  G: 'G',
+  B: 'B',
+  e: 'E'
+};
 
 const chordTypes = [
   {
@@ -163,7 +193,10 @@ const chordTypes = [
     formula: '1 - 3 - 5',
     shapes: [
       { label: 'Forme de Mi', root: 'E', frets: [0, 2, 2, 1, 0, 0], fingers: '134211' },
-      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 2, 2, 0], fingers: 'x13331' }
+      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 2, 2, 0], fingers: 'x13331' },
+      { label: 'Forme de Do', rootString: 'A', rootBaseFret: 3, frets: ['x', 3, 2, 0, 1, 0], fingers: 'x32010' },
+      { label: 'Forme de Sol', rootString: 'E', rootBaseFret: 3, frets: [3, 2, 0, 0, 0, 3], fingers: '210003' },
+      { label: 'Forme de Re', rootString: 'D', rootBaseFret: 0, frets: ['x', 'x', 0, 2, 3, 2], fingers: 'xx0132' }
     ]
   },
   {
@@ -172,7 +205,8 @@ const chordTypes = [
     formula: '1 - b3 - 5',
     shapes: [
       { label: 'Forme de Mi', root: 'E', frets: [0, 2, 2, 0, 0, 0], fingers: '134111' },
-      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 2, 1, 0], fingers: 'x13421' }
+      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 2, 1, 0], fingers: 'x13421' },
+      { label: 'Forme de Re mineur', rootString: 'D', rootBaseFret: 0, frets: ['x', 'x', 0, 2, 3, 1], fingers: 'xx0231' }
     ]
   },
   {
@@ -190,7 +224,8 @@ const chordTypes = [
     formula: '1 - 3 - 5 - 6',
     shapes: [
       { label: 'Forme de Mi', root: 'E', frets: [0, 2, 2, 1, 2, 0], fingers: '134121' },
-      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 2, 2, 2], fingers: 'x13444' }
+      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 2, 2, 2], fingers: 'x13444' },
+      { label: 'Forme de Do6', rootString: 'A', rootBaseFret: 3, frets: ['x', 3, 2, 2, 1, 0], fingers: 'x32010' }
     ]
   },
   {
@@ -208,7 +243,10 @@ const chordTypes = [
     formula: '1 - 3 - 5 - b7',
     shapes: [
       { label: 'Forme de Mi', root: 'E', frets: [0, 2, 0, 1, 0, 0], fingers: '020100' },
-      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 0, 2, 0], fingers: 'x02030' }
+      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 0, 2, 0], fingers: 'x02030' },
+      { label: 'Forme de Do7', rootString: 'A', rootBaseFret: 3, frets: ['x', 3, 2, 3, 1, 0], fingers: 'x32310' },
+      { label: 'Forme de Sol7', rootString: 'E', rootBaseFret: 3, frets: [3, 2, 0, 0, 0, 1], fingers: '210001' },
+      { label: 'Forme de Re7', rootString: 'D', rootBaseFret: 0, frets: ['x', 'x', 0, 2, 1, 2], fingers: 'xx0213' }
     ]
   },
   {
@@ -217,7 +255,10 @@ const chordTypes = [
     formula: '1 - 3 - 5 - 7',
     shapes: [
       { label: 'Forme de Mi', root: 'E', frets: [0, 2, 1, 1, 0, 0], fingers: '032211' },
-      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 1, 2, 0], fingers: 'x03140' }
+      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 1, 2, 0], fingers: 'x03140' },
+      { label: 'Forme de DoMaj7', rootString: 'A', rootBaseFret: 3, frets: ['x', 3, 2, 0, 0, 0], fingers: 'x32000' },
+      { label: 'Forme de SolMaj7', rootString: 'E', rootBaseFret: 3, frets: [3, 2, 0, 0, 0, 2], fingers: '210004' },
+      { label: 'Forme de ReMaj7', rootString: 'D', rootBaseFret: 0, frets: ['x', 'x', 0, 2, 2, 2], fingers: 'xx0111' }
     ]
   },
   {
@@ -226,7 +267,8 @@ const chordTypes = [
     formula: '1 - b3 - 5 - b7',
     shapes: [
       { label: 'Forme de Mi', root: 'E', frets: [0, 2, 0, 0, 0, 0], fingers: '020000' },
-      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 0, 1, 0], fingers: 'x02010' }
+      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 0, 1, 0], fingers: 'x02010' },
+      { label: 'Forme de Re mineur7', rootString: 'D', rootBaseFret: 0, frets: ['x', 'x', 0, 2, 1, 1], fingers: 'xx0211' }
     ]
   },
   {
@@ -235,7 +277,8 @@ const chordTypes = [
     formula: '1 - 2 - 5',
     shapes: [
       { label: 'Forme de Mi', root: 'E', frets: [0, 2, 4, 4, 2, 2], fingers: '013341' },
-      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 2, 0, 0], fingers: 'x01300' }
+      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 2, 0, 0], fingers: 'x01300' },
+      { label: 'Forme de Re sus2', rootString: 'D', rootBaseFret: 0, frets: ['x', 'x', 0, 2, 3, 0], fingers: 'xx0230' }
     ]
   },
   {
@@ -244,7 +287,10 @@ const chordTypes = [
     formula: '1 - 4 - 5',
     shapes: [
       { label: 'Forme de Mi', root: 'E', frets: [0, 2, 2, 2, 0, 0], fingers: '134211' },
-      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 2, 3, 0], fingers: 'x13341' }
+      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 2, 3, 0], fingers: 'x13341' },
+      { label: 'Forme de Do sus4', rootString: 'A', rootBaseFret: 3, frets: ['x', 3, 3, 0, 1, 1], fingers: 'x33011' },
+      { label: 'Forme de Sol sus4', rootString: 'E', rootBaseFret: 3, frets: [3, 3, 0, 0, 1, 3], fingers: '340013' },
+      { label: 'Forme de Re sus4', rootString: 'D', rootBaseFret: 0, frets: ['x', 'x', 0, 2, 3, 3], fingers: 'xx0234' }
     ]
   },
   {
@@ -253,7 +299,9 @@ const chordTypes = [
     formula: '1 - 3 - 5 - 9',
     shapes: [
       { label: 'Forme de Mi', root: 'E', frets: [0, 2, 2, 1, 2, 0], fingers: '134121' },
-      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 2, 0, 0], fingers: 'x01300' }
+      { label: 'Forme de La', root: 'A', frets: ['x', 0, 2, 2, 0, 0], fingers: 'x01300' },
+      { label: 'Forme de Do add9', rootString: 'A', rootBaseFret: 3, frets: ['x', 3, 2, 0, 3, 0], fingers: 'x32040' },
+      { label: 'Forme de Sol add9', rootString: 'E', rootBaseFret: 3, frets: [3, 'x', 0, 0, 0, 3], fingers: '2x0004' }
     ]
   },
   {
@@ -317,11 +365,35 @@ function buildAliases(note, suffix) {
   return note.aliases.map((alias) => `${alias}${suffix}`);
 }
 
-function chooseShape(note, type) {
+function getTargetRootFret(noteName, stringName) {
+  const openNote = openStringNotes[stringName];
+  const noteIndex = semitoneScale.indexOf(normalizeNoteName(noteName));
+  const openIndex = semitoneScale.indexOf(openNote);
+  if (noteIndex === -1 || openIndex === -1) {
+    return 0;
+  }
+
+  return (noteIndex - openIndex + semitoneScale.length) % semitoneScale.length;
+}
+
+function buildShapeVariants(note, type) {
   return type.shapes
     .map((shape) => {
-      const rootFret = shape.root === 'E' ? note.eFret : note.aFret;
-      const absoluteFrets = formatAbsoluteFrets(shape, rootFret);
+      let rootFret = shape.root === 'E' ? note.eFret : note.aFret;
+      let absoluteFrets = formatAbsoluteFrets(shape, rootFret);
+
+      if (shape.rootString) {
+        const targetRootFret = getTargetRootFret(note.primary, shape.rootString);
+        let shift = targetRootFret - shape.rootBaseFret;
+
+        while (shape.frets.some((value) => value !== 'x' && value + shift < 0)) {
+          shift += 12;
+        }
+
+        rootFret = shape.rootBaseFret + shift;
+        absoluteFrets = shape.frets.map((value) => (value === 'x' ? 'x' : String(value + shift)));
+      }
+
       const numericFrets = absoluteFrets
         .filter((value) => value !== 'x')
         .map((value) => Number(value));
@@ -344,13 +416,26 @@ function chooseShape(note, type) {
       }
 
       return left.span - right.span;
-    })[0];
+    })
+    .filter((shape, index, shapes) =>
+      shapes.findIndex((candidate) => candidate.absoluteFrets.join(' ') === shape.absoluteFrets.join(' ')) === index
+    )
+    .map((shape, index) => ({
+      index,
+      label: shape.label,
+      absoluteFrets: shape.absoluteFrets,
+      shape: shape.absoluteFrets.join(' '),
+      fingers: shape.fingers.split('').join(' '),
+      fingerPattern: shape.fingers,
+      notes: formatDiagram(shape.absoluteFrets)
+    }));
 }
 
 function createChordDictionary() {
   return noteMap.flatMap((note) =>
     chordTypes.map((type) => {
-      const bestShape = chooseShape(note, type);
+      const variants = buildShapeVariants(note, type);
+      const bestShape = variants[0];
       const name = `${note.primary}${type.suffix}`;
 
       return {
@@ -358,9 +443,12 @@ function createChordDictionary() {
         aliases: buildAliases(note, type.suffix),
         family: type.family,
         formula: type.formula,
+        variants,
         shapeLabel: bestShape.label,
+        absoluteFrets: bestShape.absoluteFrets,
         shape: bestShape.absoluteFrets.join(' '),
         fingers: bestShape.fingers.split('').join(' '),
+        fingerPattern: bestShape.fingers,
         notes: formatDiagram(bestShape.absoluteFrets),
         isFavoriteOpen: favoriteOpenChordNames.includes(name),
         searchText: [
@@ -375,6 +463,135 @@ function createChordDictionary() {
 }
 
 const chordDictionary = createChordDictionary();
+const chordDictionaryLookup = new Map();
+
+chordDictionary.forEach((chord) => {
+  chordDictionaryLookup.set(chord.name.toLowerCase(), chord);
+  chord.aliases.forEach((alias) => {
+    chordDictionaryLookup.set(alias.toLowerCase(), chord);
+  });
+});
+
+function populateChordDetails(targets, chord, variantIndex = 0) {
+  const safeIndex = Math.max(0, Math.min(chord.variants.length - 1, variantIndex));
+  const variant = chord.variants[safeIndex];
+
+  targets.family.innerHTML = `<strong>Type</strong> ${chord.family}`;
+  targets.formula.innerHTML = `<strong>Formule</strong> ${chord.formula}`;
+  targets.shapeLabel.innerHTML = `<strong>Forme</strong> ${variant.label}`;
+  targets.shape.innerHTML = `<strong>Position</strong> ${variant.shape}`;
+  targets.fingers.innerHTML = `<strong>Doigtes</strong> ${variant.fingers}`;
+  targets.notes.textContent = variant.notes;
+
+  if (targets.aliases) {
+    targets.aliases.classList.toggle('is-hidden', chord.aliases.length === 0);
+    targets.aliases.innerHTML = chord.aliases.length > 0
+      ? `<strong>Alias</strong> ${chord.aliases.join(', ')}`
+      : '<strong>Alias</strong> Aucun';
+  }
+
+  if (targets.variantLabel) {
+    targets.variantLabel.textContent = `Forme ${safeIndex + 1}/${chord.variants.length}`;
+  }
+
+  if (targets.prevButton) {
+    targets.prevButton.disabled = chord.variants.length <= 1 || safeIndex === 0;
+  }
+
+  if (targets.nextButton) {
+    targets.nextButton.disabled = chord.variants.length <= 1 || safeIndex >= chord.variants.length - 1;
+  }
+}
+
+function createChordCard(chord) {
+  const card = document.createElement('article');
+  card.className = 'chord-card';
+  card.dataset.variantIndex = '0';
+
+  const titleRow = document.createElement('div');
+  titleRow.className = 'chord-card-header';
+
+  const title = document.createElement('h3');
+  title.textContent = chord.name;
+  titleRow.appendChild(title);
+
+  const nav = document.createElement('div');
+  nav.className = 'chord-variant-nav';
+
+  const prevButton = document.createElement('button');
+  prevButton.type = 'button';
+  prevButton.textContent = '←';
+  prevButton.setAttribute('aria-label', `Forme precedente pour ${chord.name}`);
+
+  const variantLabel = document.createElement('strong');
+  variantLabel.className = 'chord-variant-label';
+
+  const nextButton = document.createElement('button');
+  nextButton.type = 'button';
+  nextButton.textContent = '→';
+  nextButton.setAttribute('aria-label', `Forme suivante pour ${chord.name}`);
+
+  nav.append(prevButton, variantLabel, nextButton);
+  titleRow.appendChild(nav);
+  card.appendChild(titleRow);
+
+  if (chord.isFavoriteOpen) {
+    const badge = document.createElement('p');
+    badge.className = 'chord-badge';
+    badge.textContent = 'Accord ouvert classique';
+    card.appendChild(badge);
+  }
+
+  const aliases = document.createElement('p');
+  aliases.className = 'chord-aliases';
+  if (chord.aliases.length === 0) {
+    aliases.classList.add('is-hidden');
+  }
+
+  const family = document.createElement('p');
+  family.className = 'chord-family';
+  const formula = document.createElement('p');
+  formula.className = 'chord-formula';
+  const shapeLabel = document.createElement('p');
+  shapeLabel.className = 'chord-shape-label';
+  const shape = document.createElement('p');
+  shape.className = 'chord-shape';
+  const fingers = document.createElement('p');
+  fingers.className = 'chord-fingers';
+  const notes = document.createElement('pre');
+  notes.className = 'chord-notes';
+
+  card.append(aliases, family, formula, shapeLabel, shape, fingers, notes);
+
+  const applyVariant = (nextIndex) => {
+    card.dataset.variantIndex = String(nextIndex);
+    populateChordDetails({
+      aliases,
+      family,
+      formula,
+      shapeLabel,
+      shape,
+      fingers,
+      notes,
+      variantLabel,
+      prevButton,
+      nextButton
+    }, chord, nextIndex);
+  };
+
+  prevButton.addEventListener('click', () => {
+    const currentIndex = Number(card.dataset.variantIndex || '0');
+    applyVariant(currentIndex - 1);
+  });
+
+  nextButton.addEventListener('click', () => {
+    const currentIndex = Number(card.dataset.variantIndex || '0');
+    applyVariant(currentIndex + 1);
+  });
+
+  applyVariant(0);
+  return card;
+}
 
 function renderChordDictionary(query = '') {
   const normalizedQuery = query.trim().toLowerCase();
@@ -399,53 +616,7 @@ function renderChordDictionary(query = '') {
   }
 
   chords.forEach((chord) => {
-    const card = document.createElement('article');
-    card.className = 'chord-card';
-
-    const title = document.createElement('h3');
-    title.textContent = chord.name;
-    card.appendChild(title);
-
-    if (chord.isFavoriteOpen) {
-      const badge = document.createElement('p');
-      badge.className = 'chord-badge';
-      badge.textContent = 'Accord ouvert classique';
-      card.appendChild(badge);
-    }
-
-    if (chord.aliases.length > 0) {
-      const aliases = document.createElement('p');
-      aliases.className = 'chord-aliases';
-      aliases.innerHTML = `<strong>Alias</strong> ${chord.aliases.join(', ')}`;
-      card.appendChild(aliases);
-    }
-
-    const family = document.createElement('p');
-    family.className = 'chord-family';
-    family.innerHTML = `<strong>Type</strong> ${chord.family}`;
-
-    const formula = document.createElement('p');
-    formula.className = 'chord-formula';
-    formula.innerHTML = `<strong>Formule</strong> ${chord.formula}`;
-
-    const shape = document.createElement('p');
-    shape.className = 'chord-shape';
-    shape.innerHTML = `<strong>Position</strong> ${chord.shape}`;
-
-    const fingers = document.createElement('p');
-    fingers.className = 'chord-fingers';
-    fingers.innerHTML = `<strong>Doigtes</strong> ${chord.fingers}`;
-
-    const shapeLabel = document.createElement('p');
-    shapeLabel.className = 'chord-shape-label';
-    shapeLabel.innerHTML = `<strong>Forme</strong> ${chord.shapeLabel}`;
-
-    const notes = document.createElement('pre');
-    notes.className = 'chord-notes';
-    notes.textContent = chord.notes;
-
-    card.append(family, formula, shapeLabel, shape, fingers, notes);
-    chordList.appendChild(card);
+    chordList.appendChild(createChordCard(chord));
   });
 }
 
@@ -465,7 +636,7 @@ function transposeNote(note, amount) {
 }
 
 function transposeChordToken(token, amount) {
-  return token.replace(/(^|[^A-Za-z0-9])([A-G](?:#|b)?)(maj7|maj9|maj|min|m13|m11|m9|m7b5|m7|m6|m|sus2|sus4|sus|add9|add11|add13|dim7|dim|aug|13|11|9|7|6|5|4|2)?(?:\/([A-G](?:#|b)?))?(?=$|[^A-Za-z0-9])/g, (match, prefix, root, suffix, bass) => {
+  return token.replace(chordTokenPattern, (match, prefix, root, suffix, bass) => {
     const nextRoot = transposeNote(root, amount);
     const nextBass = bass ? `/${transposeNote(bass, amount)}` : '';
     return `${prefix}${nextRoot}${suffix || ''}${nextBass}`;
@@ -627,6 +798,154 @@ function escapeHtml(text) {
     .replaceAll('>', '&gt;');
 }
 
+function renderClickableChordLine(line) {
+  let lastIndex = 0;
+  let rendered = '';
+  chordTokenPattern.lastIndex = 0;
+  let match = chordTokenPattern.exec(line);
+
+  while (match) {
+    const [matchedText, prefix, root, suffix = '', bass] = match;
+    const tokenStart = match.index + prefix.length;
+    const tokenText = `${root}${suffix}${bass ? `/${bass}` : ''}`;
+    rendered += escapeHtml(line.slice(lastIndex, tokenStart));
+    rendered += `<button class="inline-chord-button" type="button" data-chord="${escapeHtml(tokenText)}">${escapeHtml(tokenText)}</button>`;
+    lastIndex = tokenStart + tokenText.length;
+    match = chordTokenPattern.exec(line);
+  }
+
+  rendered += escapeHtml(line.slice(lastIndex));
+  return rendered;
+}
+
+function renderFormattedTextChunk(text) {
+  const formatted = formatTabForViewport(text);
+  return formatted
+    .split('\n')
+    .map((line) => (isChordLine(line) ? renderClickableChordLine(line) : escapeHtml(line)))
+    .join('\n');
+}
+
+function renderNotationBlock(lines) {
+  return lines
+    .map((line) => (isChordLine(line) ? renderClickableChordLine(line) : escapeHtml(line)))
+    .join('\n');
+}
+
+function normalizeChordToken(token) {
+  return token.trim().replace(/\s+/g, '');
+}
+
+function resolveChordEntry(token) {
+  const cleaned = normalizeChordToken(token);
+  const direct = chordDictionaryLookup.get(cleaned.toLowerCase());
+  if (direct) {
+    return { chord: direct, requestedName: cleaned, bass: null };
+  }
+
+  const [baseName, bass] = cleaned.split('/');
+  const baseChord = chordDictionaryLookup.get((baseName || '').toLowerCase());
+  if (baseChord) {
+    return { chord: baseChord, requestedName: cleaned, bass: bass || null };
+  }
+
+  return null;
+}
+
+function setChordModalVisibility(isVisible) {
+  isChordModalOpen = isVisible;
+  chordModal.classList.toggle('is-hidden', !isVisible);
+  chordModal.setAttribute('aria-hidden', String(!isVisible));
+  document.body.classList.toggle('chord-modal-open', isVisible);
+  if (!isVisible) {
+    activeModalChord = null;
+  }
+}
+
+function updateChordModal(chordToken) {
+  const resolved = resolveChordEntry(chordToken);
+  if (!resolved) {
+    return false;
+  }
+
+  activeModalChord = resolved;
+  activeModalChordVariantIndex = 0;
+  chordModalTitle.textContent = resolved.requestedName;
+  chordModalSubtitle.textContent = resolved.bass
+    ? `Affichage base ${resolved.chord.name} avec basse ${resolved.bass}.`
+    : 'Diagramme et ecoute';
+  populateChordDetails({
+    aliases: chordModalAliases,
+    family: chordModalFamily,
+    formula: chordModalFormula,
+    shapeLabel: chordModalShapeLabel,
+    shape: chordModalShape,
+    fingers: chordModalFingers,
+    notes: chordModalNotes,
+    variantLabel: chordModalVariantLabel,
+    prevButton: chordModalPrev,
+    nextButton: chordModalNext
+  }, resolved.chord, activeModalChordVariantIndex);
+  setChordModalVisibility(true);
+  return true;
+}
+
+function getChordFrequencies(variant) {
+  return variant.absoluteFrets.map((fret, index) => {
+    if (fret === 'x') {
+      return null;
+    }
+
+    return standardTuningFrequencies[index] * (2 ** (Number(fret) / 12));
+  });
+}
+
+function ensureChordAudioContext() {
+  if (!chordAudioContext) {
+    chordAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  if (chordAudioContext.state === 'suspended') {
+    chordAudioContext.resume();
+  }
+
+  return chordAudioContext;
+}
+
+function playChord(variant, arpeggio = false) {
+  const context = ensureChordAudioContext();
+  const frequencies = getChordFrequencies(variant);
+  const now = context.currentTime;
+  const order = arpeggio ? [0, 1, 2, 3, 4, 5] : [0, 1, 2, 3, 4, 5];
+
+  order.forEach((index, orderIndex) => {
+    const frequency = frequencies[index];
+    if (!frequency) {
+      return;
+    }
+
+    const start = now + (arpeggio ? orderIndex * 0.08 : orderIndex * 0.03);
+    const gain = context.createGain();
+    const oscillator = context.createOscillator();
+    const filter = context.createBiquadFilter();
+
+    oscillator.type = arpeggio ? 'triangle' : 'sine';
+    oscillator.frequency.setValueAtTime(frequency, start);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(arpeggio ? 2400 : 2000, start);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.linearRampToValueAtTime(arpeggio ? 0.12 : 0.09, start + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + (arpeggio ? 1.2 : 1.0));
+
+    oscillator.connect(filter);
+    filter.connect(gain);
+    gain.connect(context.destination);
+
+    oscillator.start(start);
+    oscillator.stop(start + (arpeggio ? 1.25 : 1.05));
+  });
+}
+
 function buildRenderedTabHtml(text) {
   const lines = text.split('\n');
   const parts = [];
@@ -639,7 +958,7 @@ function buildRenderedTabHtml(text) {
     }
 
     const chunk = textBuffer.join('\n');
-    parts.push(`<pre class="tab-text-block">${escapeHtml(formatTabForViewport(chunk))}</pre>`);
+    parts.push(`<pre class="tab-text-block">${renderFormattedTextChunk(chunk)}</pre>`);
     textBuffer.length = 0;
   }
 
@@ -655,7 +974,7 @@ function buildRenderedTabHtml(text) {
         notationLines.push(lines[notationIndex]);
         notationIndex += 1;
       }
-      parts.push(`<div class="tab-notation-block"><pre class="tab-notation-pre">${escapeHtml(notationLines.join('\n'))}</pre></div>`);
+      parts.push(`<div class="tab-notation-block"><pre class="tab-notation-pre">${renderNotationBlock(notationLines)}</pre></div>`);
       index = notationIndex;
       continue;
     }
@@ -668,7 +987,7 @@ function buildRenderedTabHtml(text) {
         notationLines.push(lines[notationIndex]);
         notationIndex += 1;
       }
-      parts.push(`<div class="tab-notation-block"><pre class="tab-notation-pre">${escapeHtml(notationLines.join('\n'))}</pre></div>`);
+      parts.push(`<div class="tab-notation-block"><pre class="tab-notation-pre">${renderNotationBlock(notationLines)}</pre></div>`);
       index = notationIndex;
       continue;
     }
@@ -2050,6 +2369,70 @@ concertShareModal.addEventListener('click', (event) => {
 });
 
 concertCopyLink.addEventListener('click', copyConcertShareLink);
+chordModalClose.addEventListener('click', () => {
+  setChordModalVisibility(false);
+});
+chordModal.addEventListener('click', (event) => {
+  if (event.target === chordModal) {
+    setChordModalVisibility(false);
+  }
+});
+tabContent.addEventListener('click', (event) => {
+  const chordButton = event.target.closest('.inline-chord-button');
+  if (!chordButton) {
+    return;
+  }
+
+  updateChordModal(chordButton.dataset.chord || chordButton.textContent || '');
+});
+chordPlayStrum.addEventListener('click', () => {
+  if (activeModalChord) {
+    playChord(activeModalChord.chord.variants[activeModalChordVariantIndex], false);
+  }
+});
+chordPlayArpeggio.addEventListener('click', () => {
+  if (activeModalChord) {
+    playChord(activeModalChord.chord.variants[activeModalChordVariantIndex], true);
+  }
+});
+chordModalPrev.addEventListener('click', () => {
+  if (!activeModalChord) {
+    return;
+  }
+
+  activeModalChordVariantIndex = Math.max(0, activeModalChordVariantIndex - 1);
+  populateChordDetails({
+    aliases: chordModalAliases,
+    family: chordModalFamily,
+    formula: chordModalFormula,
+    shapeLabel: chordModalShapeLabel,
+    shape: chordModalShape,
+    fingers: chordModalFingers,
+    notes: chordModalNotes,
+    variantLabel: chordModalVariantLabel,
+    prevButton: chordModalPrev,
+    nextButton: chordModalNext
+  }, activeModalChord.chord, activeModalChordVariantIndex);
+});
+chordModalNext.addEventListener('click', () => {
+  if (!activeModalChord) {
+    return;
+  }
+
+  activeModalChordVariantIndex = Math.min(activeModalChord.chord.variants.length - 1, activeModalChordVariantIndex + 1);
+  populateChordDetails({
+    aliases: chordModalAliases,
+    family: chordModalFamily,
+    formula: chordModalFormula,
+    shapeLabel: chordModalShapeLabel,
+    shape: chordModalShape,
+    fingers: chordModalFingers,
+    notes: chordModalNotes,
+    variantLabel: chordModalVariantLabel,
+    prevButton: chordModalPrev,
+    nextButton: chordModalNext
+  }, activeModalChord.chord, activeModalChordVariantIndex);
+});
 
 concertClear.addEventListener('click', () => {
   concertPlan = [];
@@ -2219,6 +2602,11 @@ document.addEventListener('fullscreenchange', () => {
 });
 
 document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && isChordModalOpen) {
+    setChordModalVisibility(false);
+    return;
+  }
+
   if (event.key === 'Escape' && isConcertShareOpen) {
     setConcertShareVisibility(false);
     return;

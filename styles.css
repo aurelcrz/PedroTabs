@@ -569,6 +569,117 @@ code {
   margin-top: 16px;
 }
 
+.chord-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(28, 20, 13, 0.58);
+}
+
+.chord-modal.is-hidden {
+  display: none;
+}
+
+.chord-modal-card {
+  width: min(100%, 620px);
+  background: rgba(255, 250, 242, 0.98);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(33, 22, 12, 0.28);
+  padding: 22px;
+}
+
+.chord-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.chord-modal-close,
+.chord-modal-actions button {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+}
+
+.chord-modal-close {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.chord-modal-subtitle {
+  margin: 12px 0 0;
+  color: var(--muted);
+}
+
+.chord-modal-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.chord-modal-diagram-wrap {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--accent-soft);
+  padding: 14px;
+}
+
+.chord-modal-diagram-wrap .chord-variant-nav {
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.chord-modal-notes {
+  margin: 0;
+  font-family: "Courier New", monospace;
+  font-size: 1rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.chord-modal-details {
+  display: grid;
+  gap: 10px;
+}
+
+.chord-modal-detail {
+  margin: 0;
+  color: var(--muted);
+}
+
+.chord-modal-detail strong {
+  color: var(--text);
+}
+
+.chord-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.chord-modal-actions button {
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.chord-modal-close:hover,
+.chord-modal-actions button:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
 .content-header {
   display: flex;
   justify-content: space-between;
@@ -628,6 +739,41 @@ code {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.inline-chord-button {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: #9f4f1d;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 0.16em;
+}
+
+.inline-chord-button:hover {
+  color: #b8652c;
+}
+
+.inline-chord-button:focus-visible {
+  outline: 2px solid rgba(184, 101, 44, 0.28);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+body.scene-mode .inline-chord-button {
+  color: #f2c08c;
+}
+
+body.scene-mode .inline-chord-button:hover {
+  color: #ffd7ad;
+}
+
+body.scene-mode .inline-chord-button:focus-visible {
+  outline-color: rgba(255, 215, 173, 0.35);
 }
 
 .tab-notation-block {
@@ -727,9 +873,51 @@ code {
   padding: 16px;
 }
 
+.chord-card-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .chord-card h3 {
   margin: 0 0 10px;
   font-size: 1.2rem;
+}
+
+.chord-variant-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chord-variant-nav button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.chord-variant-nav button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chord-variant-nav button:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.chord-variant-label {
+  min-width: 72px;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--muted);
 }
 
 .chord-badge {
@@ -750,6 +938,10 @@ code {
 .chord-fingers {
   margin: 6px 0 0;
   color: var(--muted);
+}
+
+.chord-aliases.is-hidden {
+  display: none;
 }
 
 .chord-aliases strong,
@@ -1640,6 +1832,10 @@ body.concert-share-open {
   overflow: hidden;
 }
 
+body.chord-modal-open {
+  overflow: hidden;
+}
+
 @media (max-width: 860px) {
   .transpose-panel-inline {
     padding: 8px 10px;
@@ -1780,6 +1976,19 @@ body.scene-mode .viewer-speed-float button {
 }
 
 @media (max-width: 860px) {
+  .chord-modal-card {
+    padding: 18px;
+  }
+
+  .chord-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chord-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
   .concert-planner-grid {
     grid-template-columns: 1fr;
   }
