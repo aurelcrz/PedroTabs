@@ -4,7 +4,8 @@ const fsSync = require('node:fs');
 const path = require('node:path');
 
 const root = __dirname;
-const port = 8080;
+const port = Number(process.env.PORT) || 8080;
+const host = process.env.HOST || '0.0.0.0';
 
 const contentTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -292,8 +293,8 @@ server.on('clientError', (error, socket) => {
   }
 });
 
-server.listen(port, '127.0.0.1', () => {
-  console.log('PedroTabs disponible sur http://localhost:8080');
+server.listen(port, host, () => {
+  console.log(`PedroTabs disponible sur http://${host}:${port}`);
   console.log('Ajoute tes fichiers .txt dans le dossier tabs puis recharge la page.');
   console.log('Arret avec Ctrl + C');
 });
