@@ -1,0 +1,142 @@
+Francis Cabrel - Petite Marie (Chords)
+======================================
+
+Accordage:  E A D G B E
+Capo:  Pas de capo
+
+[Chords]
+Em9      0x4030
+A7add13  x04020
+GM9      3x420x
+A/G      3x222x
+ 
+[Intro]
+   Em9                     A7add13
+e|----------0-----------------------0-------------|
+B|-3-----------------3-----2-----------------2----|
+G|-------0--------0-----0--------0--------0-----0-|
+D|----4--------4--------------4--------4----------|
+A|-------------------------0--------0-------------|
+E|-0--------0-------------------------------------|
+ 
+   F#m7                    Bsus2    Bm
+e|----------2-------------------------------------|
+B|-2-----------------2-----2--------3--------3----|
+G|-------2--------2-----2--------4--------4-----0-|
+D|----2--------2--------------4--------4----------|
+A|-------------------------2--------2-------------|
+E|-2--------2-------------------------------------|
+ 
+   G        GM9            A/G
+e|------------------------------------------------|
+B|-0--------0--------0-----2--------2--------2----|
+G|-------0--------2-----0--------2--------2-----0-|
+D|----0--------4--------------2--------2----------|
+A|------------------------------------------------|
+E|-3--------3--------------3--------3-------------|
+ 
+   F#m7                    Bm
+e|----------2-------------------------------------|
+B|-2-----------------2-----3--------3--------3----|
+G|-------2--------2-----2--------4--------4-------|
+D|----2--------2--------------4--------4----------|
+A|-------------------------2--------2-------------|
+E|-2--------2-------------------------------------|
+ 
+[Couplet 1]
+        Em              A7
+Petite Marie, je parle de toi
+             Bm
+Parce qu'avec, ta petite voix
+                  Em                F#
+Tes petites manies, tu as versé sur ma vie
+                 Bm     Bsus2  Bm
+Des milliers de roses
+ 
+        Em                A7
+Petite furie, je me bats pour toi
+              Bm
+Pour que dans, dix mille ans de ça
+                  Em                         F#
+On se retrouve à l'abri, sous un ciel aussi joli
+                     Bm     Bsus2  Bm
+Que des milliers de roses
+ 
+[Refrain]
+              G                         A
+Je viens du ciel, et les étoiles entre elles
+                   Bm   Bsus2  Bm
+Ne parlent que de toi
+           G                        A
+D'un musicien, qui fait jouer ses mains
+                  F#m
+Sur un morceau de bois
+              G               A                Bm   F#7   D   E
+De leur amour, plus bleu que le ciel autour
+ 
+[Couplet 2]
+        Em                   A7
+Petite Marie, je t'attends transi
+           Bm
+Sous une tuile de ton toit
+                    Em                       F#
+Le vent de la nuit froide, me renvoie la ballade
+                    Bm
+Que j'avais écrite pour toi
+ 
+        Em               A7
+Petite furie, tu dis que la vie
+           Bm
+C'est une bague à chaque doigt
+                 Em                         F#
+Au soleil de Floride, moi mes poches sont vides
+                     Bm
+Et mes yeux pleurent de froid
+ 
+[Refrain]
+              G                         A
+Je viens du ciel, et les étoiles entre elles
+                   Bm   Bsus2  Bm
+Ne parlent que de toi
+           G                        A
+D'un musicien, qui fait jouer ses mains
+                  F#m
+Sur un morceau de bois
+              G               A                Bm   F#7   D   E
+De leur amour, plus bleu que le ciel autour
+ 
+[Pont]
+        Bm             F#7
+Dans la pénombre de ta rue
+        D                E
+Petite Marie, m'entends-tu ?
+         G             D           A
+Je n'attends plus que toi pour partir
+ 
+        Bm             F#7
+Dans la pénombre de ta rue
+        D                E
+Petite Marie, m'entends-tu ?
+         G             D           A    Asus4
+Je n'attends plus que toi pour partir
+ 
+[Refrain]
+              G                         A
+Je viens du ciel, et les étoiles entre elles
+                   Bm   Bsus2  Bm
+Ne parlent que de toi
+           G                        A
+D'un musicien, qui fait jouer ses mains
+                  F#m
+Sur un morceau de bois
+              G               A                Bm   F#7   D   E
+De leur amour, plus bleu que le ciel autour
+ 
+[Outro]
+   E                                                                        Bm
+e|-0------2--3--2--2-(2)-0--0-----10--10----9------------7--9--10--9--7---------|
+B|-0---0-----------------------8---------------10----10------------------7--3---|
+G|-1------------------------------------------------------------------------4---|
+D|-2------------------------------------------------------------------------4---|
+A|-2------------------------------------------------------------------------5---|
+E|-0----------------------------------------------------------------------------|

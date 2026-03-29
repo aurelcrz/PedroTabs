@@ -1,0 +1,302 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mes Tablatures</title>
+  <meta name="theme-color" content="#b8652c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page">
+    <aside id="menu-drawer" class="sidebar menu-drawer is-hidden">
+      <p class="eyebrow">Tabs_WIP</p>
+      <h1>Mes tablatures</h1>
+      <section class="tabs-drawer-panel">
+        <button id="tabs-toggle" class="tabs-toggle" type="button" aria-expanded="true">
+          <span>Tablatures</span>
+        </button>
+
+        <div id="tabs-content" class="tabs-content">
+          <label class="search-label" for="search">Recherche</label>
+          <input id="search" type="search" placeholder="Chercher un morceau">
+
+          <nav>
+            <ul id="tab-list" class="tab-list"></ul>
+          </nav>
+        </div>
+      </section>
+
+      <section class="concert-drawer-panel">
+        <div class="concert-drawer-header">
+          <div>
+            <p class="eyebrow">Concert</p>
+            <h2>Preparation</h2>
+          </div>
+          <button id="concert-planner-toggle" class="concert-planner-toggle" type="button" aria-expanded="false">
+            Ouvrir
+          </button>
+        </div>
+        <p id="concert-drawer-summary" class="concert-drawer-summary">Aucun morceau dans la setlist.</p>
+      </section>
+
+      <section class="tools-panel drawer-tools-panel">
+        <button id="tools-toggle" class="tools-burger" type="button" aria-expanded="false">
+          <span class="tools-burger-lines" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+          <span>Outils</span>
+        </button>
+
+        <div id="tools-content" class="tools-content is-hidden">
+          <section class="chord-panel">
+            <div class="chord-panel-header">
+              <div>
+                <p class="eyebrow">Accords</p>
+                <h2>Dictionnaire d'accords</h2>
+              </div>
+            </div>
+
+            <button id="chord-toggle" class="chord-toggle" type="button" aria-expanded="false">
+              Afficher le dictionnaire
+            </button>
+
+            <div id="chord-content" class="chord-content is-hidden">
+              <label class="chord-search" for="chord-search">
+                <span>Recherche</span>
+                <input id="chord-search" type="search" placeholder="Ex: Am, C, F#m, G7">
+              </label>
+
+              <div id="chord-list" class="chord-list"></div>
+            </div>
+          </section>
+
+          <section class="tuner-panel">
+            <div class="tuner-panel-header">
+              <div>
+                <p class="eyebrow">Accordeur</p>
+                <h2>Accordeur guitare</h2>
+              </div>
+            </div>
+
+            <div class="tuner-controls">
+              <button id="tuner-start" type="button">Demarrer le micro</button>
+              <button id="tuner-stop" type="button" disabled>Arreter</button>
+            </div>
+
+            <p id="tuner-status" class="tuner-status">Autorise le micro pour commencer.</p>
+
+            <div class="tuner-readout">
+              <div class="tuner-note-block">
+                <span class="tuner-label">Note</span>
+                <strong id="tuner-note">--</strong>
+              </div>
+              <div class="tuner-note-block">
+                <span class="tuner-label">Frequence</span>
+                <strong id="tuner-frequency">-- Hz</strong>
+              </div>
+              <div class="tuner-note-block">
+                <span class="tuner-label">Ecart</span>
+                <strong id="tuner-cents">-- cents</strong>
+              </div>
+            </div>
+
+            <div class="tuner-meter">
+              <div id="tuner-meter-fill" class="tuner-meter-fill"></div>
+            </div>
+
+            <div class="tuner-strings">
+              <button class="tuner-string" type="button" data-note="E2" data-frequency="82.41">E grave 82.41</button>
+              <button class="tuner-string" type="button" data-note="A2" data-frequency="110.00">A 110.00</button>
+              <button class="tuner-string" type="button" data-note="D3" data-frequency="146.83">D 146.83</button>
+              <button class="tuner-string" type="button" data-note="G3" data-frequency="196.00">G 196.00</button>
+              <button class="tuner-string" type="button" data-note="B3" data-frequency="246.94">B 246.94</button>
+              <button class="tuner-string" type="button" data-note="E4" data-frequency="329.63">E aigu 329.63</button>
+            </div>
+          </section>
+
+          <section class="metronome-panel">
+            <div class="metronome-panel-header">
+              <div>
+                <p class="eyebrow">Metronome</p>
+                <h2>Tempo</h2>
+              </div>
+            </div>
+
+            <div class="metronome-readout">
+              <strong id="metronome-bpm-value">90 BPM</strong>
+              <span id="metronome-beat-indicator">Arret</span>
+            </div>
+
+            <label class="metronome-control" for="metronome-bpm">
+              <span>Tempo</span>
+              <input id="metronome-bpm" type="range" min="40" max="220" step="1" value="90">
+            </label>
+
+            <label class="metronome-control" for="metronome-beats">
+              <span>Temps</span>
+              <select id="metronome-beats">
+                <option value="2">2/4</option>
+                <option value="3">3/4</option>
+                <option value="4" selected>4/4</option>
+                <option value="6">6/8</option>
+              </select>
+            </label>
+
+            <div class="metronome-controls">
+              <button id="metronome-toggle" type="button">Demarrer</button>
+              <button id="metronome-tap" type="button">Tap tempo</button>
+            </div>
+          </section>
+
+          <section class="offline-panel">
+            <div class="offline-panel-header">
+              <div>
+                <p class="eyebrow">Hors ligne</p>
+                <h2>Cache local</h2>
+              </div>
+            </div>
+
+            <div class="offline-controls">
+              <button id="cache-all-tabs" type="button">Mettre en cache les tabs</button>
+              <button id="clear-offline-cache" type="button">Vider le cache</button>
+            </div>
+
+            <p id="offline-status" class="offline-status">Le cache local conserve les tabs deja ouvertes.</p>
+          </section>
+        </div>
+      </section>
+    </aside>
+
+    <button id="menu-backdrop" class="menu-backdrop is-hidden" type="button" aria-label="Fermer le menu"></button>
+
+    <main class="content">
+      <header class="content-header">
+        <div class="header-main">
+          <button id="menu-toggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-drawer">
+            <span class="tools-burger-lines" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+            <span>Menu</span>
+          </button>
+          <div>
+            <h2 id="tab-title">Choisis une tablature</h2>
+          </div>
+        </div>
+        <div id="header-actions" class="header-actions" hidden>
+          <button id="remote-import-button" type="button">Importer les URLs</button>
+        </div>
+      </header>
+
+      <p id="remote-import-status" class="remote-import-status" hidden></p>
+
+      <section id="concert-planner" class="concert-planner is-hidden">
+        <div class="concert-planner-header">
+          <div>
+            <p class="eyebrow">Preparation de concert</p>
+            <h2>Construis ta setlist</h2>
+          </div>
+          <button id="concert-planner-close" class="concert-planner-close" type="button">Fermer</button>
+        </div>
+
+        <div class="concert-planner-grid">
+          <section class="concert-library-panel">
+            <div class="concert-section-header">
+              <div>
+                <p class="eyebrow">Bibliotheque</p>
+                <h3>Tes tablatures</h3>
+              </div>
+              <span id="concert-library-count" class="concert-count">0</span>
+            </div>
+
+            <label class="concert-search" for="concert-search">
+              <span>Recherche</span>
+              <input id="concert-search" type="search" placeholder="Ajouter un morceau a la setlist">
+            </label>
+
+            <ul id="concert-library-list" class="concert-list"></ul>
+          </section>
+
+          <section class="concert-setlist-panel">
+            <div class="concert-section-header">
+              <div>
+                <p class="eyebrow">Setlist</p>
+                <h3>Ordre du concert</h3>
+              </div>
+              <span id="concert-setlist-count" class="concert-count">0</span>
+            </div>
+
+            <div class="concert-setlist-actions">
+              <button id="concert-start" type="button">Demarrer en mode scene</button>
+              <button id="concert-clear" type="button">Vider</button>
+            </div>
+
+            <p id="concert-status" class="concert-status">Ajoute les morceaux dans l'ordre voulu.</p>
+            <ol id="concert-setlist" class="concert-setlist"></ol>
+          </section>
+        </div>
+      </section>
+
+      <div id="tab-stage" class="tab-stage">
+        <section class="auto-scroll-panel">
+          <div class="auto-scroll-buttons">
+            <button id="reading-mode-toggle" type="button" title="Mode lecture" aria-label="Mode lecture">&#9974;</button>
+            <button id="scene-mode-toggle" type="button" title="Mode scene" aria-label="Mode scene">&#9685;</button>
+            <button id="scroll-toggle" type="button" title="Demarrer le defilement" aria-label="Demarrer le defilement">&#9654;</button>
+            <button id="scroll-reset" type="button" title="Remettre en haut" aria-label="Remettre en haut">&#8593;</button>
+          </div>
+
+          <label class="speed-control" for="scroll-speed">
+            <span>Vitesse</span>
+            <input id="scroll-speed" type="range" min="10" max="80" step="5" value="45">
+            <div class="speed-adjust">
+              <button id="scroll-speed-down" type="button" aria-label="Reduire la vitesse">-</button>
+              <strong id="scroll-speed-value">45</strong>
+              <button id="scroll-speed-up" type="button" aria-label="Augmenter la vitesse">+</button>
+            </div>
+          </label>
+        </section>
+
+        <section class="viewer">
+          <div class="viewer-toolbar">
+            <section class="transpose-panel transpose-panel-inline">
+              <div class="transpose-bar">
+                <span class="transpose-label">Tonalite</span>
+                <div class="transpose-controls">
+                  <button id="transpose-down" type="button" aria-label="Descendre d un demi ton">-</button>
+                  <strong id="transpose-value">0</strong>
+                  <button id="transpose-up" type="button" aria-label="Monter d un demi ton">+</button>
+                </div>
+              </div>
+
+              <p id="transpose-status" class="transpose-status">Affichage original.</p>
+            </section>
+          </div>
+          <div id="viewer-speed-float" class="viewer-speed-float is-hidden" aria-label="Reglage rapide de vitesse">
+            <button id="viewer-speed-down" type="button" aria-label="Reduire la vitesse pendant le defilement">-</button>
+            <strong id="viewer-speed-value">45</strong>
+            <button id="viewer-speed-up" type="button" aria-label="Augmenter la vitesse pendant le defilement">+</button>
+          </div>
+          <div id="scene-setlist-float" class="scene-setlist-float is-hidden" aria-label="Navigation setlist">
+            <button id="scene-prev" type="button" aria-label="Morceau precedent">&#8592;</button>
+            <strong id="scene-setlist-label">Set</strong>
+            <button id="scene-next" type="button" aria-label="Morceau suivant">&#8594;</button>
+          </div>
+          <div id="tab-content">Aucune tablature chargee pour le moment.</div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
