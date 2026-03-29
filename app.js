@@ -61,12 +61,19 @@ const concertSetlist = document.querySelector('#concert-setlist');
 const concertSetlistCount = document.querySelector('#concert-setlist-count');
 const concertStatus = document.querySelector('#concert-status');
 const concertStart = document.querySelector('#concert-start');
+const concertShare = document.querySelector('#concert-share');
 const concertClear = document.querySelector('#concert-clear');
 const tabStage = document.querySelector('#tab-stage');
 const sceneSetlistFloat = document.querySelector('#scene-setlist-float');
 const sceneSetlistLabel = document.querySelector('#scene-setlist-label');
 const scenePrev = document.querySelector('#scene-prev');
 const sceneNext = document.querySelector('#scene-next');
+const concertShareModal = document.querySelector('#concert-share-modal');
+const concertShareClose = document.querySelector('#concert-share-close');
+const concertShareStatus = document.querySelector('#concert-share-status');
+const concertShareQr = document.querySelector('#concert-share-qr');
+const concertShareLink = document.querySelector('#concert-share-link');
+const concertCopyLink = document.querySelector('#concert-copy-link');
 
 let allTabs = [];
 let activeFile = null;
@@ -92,6 +99,7 @@ let metronomeInterval = null;
 let metronomeBeat = 0;
 let tapTempoTimes = [];
 let isConcertPlannerOpen = false;
+let isConcertShareOpen = false;
 let concertPlan = [];
 let concertPlanFilter = '';
 let concertPlanIndex = -1;
@@ -120,6 +128,7 @@ const lastTabStorageKey = 'pedrotabs-last-tab';
 const cachedTabsStorageKey = 'pedrotabs-cached-tabs';
 const cachedTabContentStorageKey = 'pedrotabs-cached-tab-content';
 const concertPlanStorageKey = 'pedrotabs-concert-plan';
+const concertPlanQueryKey = 'setlist';
 const noteMap = [
   { primary: 'C', aliases: ['B#'], eFret: 8, aFret: 3 },
   { primary: 'Db', aliases: ['C#'], eFret: 9, aFret: 4 },
@@ -727,6 +736,102 @@ function setTabsSectionVisibility(isVisible) {
   persistSettings();
 }
 
+function encodeConcertPlan(items) {
+  try {
+    return btoa(unescape(encodeURIComponent(JSON.stringify(items))))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/g, '');
+  } catch (error) {
+    return '';
+  }
+}
+
+function decodeConcertPlan(value) {
+  try {
+    const padded = value.replace(/-/g, '+').replace(/_/g, '/');
+    const normalized = padded + '='.repeat((4 - (padded.length % 4 || 4)) % 4);
+    const json = decodeURIComponent(escape(atob(normalized)));
+    const parsed = JSON.parse(json);
+    return Array.isArray(parsed) ? parsed.filter((item) => typeof item === 'string' && item.trim()) : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function getConcertShareUrl() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete(concertPlanQueryKey);
+
+  if (concertPlan.length > 0) {
+    url.searchParams.set(concertPlanQueryKey, encodeConcertPlan(concertPlan));
+  }
+
+  return url.toString();
+}
+
+function setConcertShareVisibility(isVisible) {
+  isConcertShareOpen = isVisible;
+  concertShareModal.classList.toggle('is-hidden', !isVisible);
+  concertShareModal.setAttribute('aria-hidden', String(!isVisible));
+  document.body.classList.toggle('concert-share-open', isVisible);
+}
+
+async function copyConcertShareLink() {
+  if (!concertShareLink.value) {
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(concertShareLink.value);
+    concertShareStatus.textContent = 'Lien copie.';
+  } catch (error) {
+    concertShareLink.focus();
+    concertShareLink.select();
+    concertShareStatus.textContent = 'Copie manuelle : maintiens puis copie le lien.';
+  }
+}
+
+function updateConcertShareUi() {
+  if (concertPlan.length === 0) {
+    concertShare.disabled = true;
+    return;
+  }
+
+  concertShare.disabled = false;
+
+  if (!isConcertShareOpen) {
+    return;
+  }
+
+  const shareUrl = getConcertShareUrl();
+  concertShareLink.value = shareUrl;
+  concertShareStatus.textContent = 'Scanne ce QR code pour recuperer la setlist sur mobile.';
+  concertShareQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(shareUrl)}`;
+}
+
+function importConcertPlanFromUrl() {
+  const url = new URL(window.location.href);
+  const encodedPlan = url.searchParams.get(concertPlanQueryKey);
+  if (!encodedPlan) {
+    return false;
+  }
+
+  const importedPlan = decodeConcertPlan(encodedPlan).filter((fileName) => allTabs.includes(fileName));
+  if (importedPlan.length === 0) {
+    return false;
+  }
+
+  concertPlan = importedPlan;
+  concertPlanIndex = 0;
+  persistConcertPlan();
+  renderConcertPlanner();
+
+  url.searchParams.delete(concertPlanQueryKey);
+  window.history.replaceState({}, '', url.toString());
+  return true;
+}
+
 function updateConcertDrawerSummary() {
   if (concertPlan.length === 0) {
     concertDrawerSummary.textContent = 'Aucun morceau dans la setlist.';
@@ -910,6 +1015,7 @@ function renderConcertSetlist() {
 function renderConcertPlanner() {
   renderConcertLibrary();
   renderConcertSetlist();
+  updateConcertShareUi();
 }
 
 function setConcertPlannerVisibility(isVisible) {
@@ -1742,15 +1848,18 @@ async function init() {
       concertPlanIndex = concertPlan.length - 1;
     }
     persistConcertPlan();
+    const importedFromUrl = importConcertPlanFromUrl();
     renderTabList();
     renderConcertPlanner();
 
     if (allTabs.length > 0) {
-      const preferredTab = (lastOpenedTab && allTabs.includes(lastOpenedTab))
-        ? lastOpenedTab
-        : (typeof savedSettings.lastTab === 'string' && allTabs.includes(savedSettings.lastTab)
-          ? savedSettings.lastTab
-          : allTabs[0]);
+      const preferredTab = importedFromUrl && concertPlan.length > 0
+        ? concertPlan[0]
+        : ((lastOpenedTab && allTabs.includes(lastOpenedTab))
+          ? lastOpenedTab
+          : (typeof savedSettings.lastTab === 'string' && allTabs.includes(savedSettings.lastTab)
+            ? savedSettings.lastTab
+            : allTabs[0]));
       await loadTab(preferredTab);
     } else {
       tabTitle.textContent = 'Aucune tablature';
@@ -1777,13 +1886,16 @@ async function init() {
         concertPlanIndex = concertPlan.length - 1;
       }
       persistConcertPlan();
+      const importedFromUrl = importConcertPlanFromUrl();
       renderTabList();
       renderConcertPlanner();
-      const preferredTab = (lastOpenedTab && allTabs.includes(lastOpenedTab))
-        ? lastOpenedTab
-        : (typeof savedSettings.lastTab === 'string' && allTabs.includes(savedSettings.lastTab)
-          ? savedSettings.lastTab
-          : allTabs[0]);
+      const preferredTab = importedFromUrl && concertPlan.length > 0
+        ? concertPlan[0]
+        : ((lastOpenedTab && allTabs.includes(lastOpenedTab))
+          ? lastOpenedTab
+          : (typeof savedSettings.lastTab === 'string' && allTabs.includes(savedSettings.lastTab)
+            ? savedSettings.lastTab
+            : allTabs[0]));
       await loadTab(preferredTab);
       updateSpeedLabel();
       updateTransposeUi();
@@ -1904,10 +2016,33 @@ concertStart.addEventListener('click', async () => {
   await loadConcertPlanEntry(startIndex, { sceneMode: true });
 });
 
+concertShare.addEventListener('click', () => {
+  if (concertPlan.length === 0) {
+    concertStatus.textContent = 'Ajoute au moins un morceau pour partager la setlist.';
+    return;
+  }
+
+  updateConcertShareUi();
+  setConcertShareVisibility(true);
+});
+
+concertShareClose.addEventListener('click', () => {
+  setConcertShareVisibility(false);
+});
+
+concertShareModal.addEventListener('click', (event) => {
+  if (event.target === concertShareModal) {
+    setConcertShareVisibility(false);
+  }
+});
+
+concertCopyLink.addEventListener('click', copyConcertShareLink);
+
 concertClear.addEventListener('click', () => {
   concertPlan = [];
   concertPlanIndex = -1;
   persistConcertPlan();
+  setConcertShareVisibility(false);
   renderConcertPlanner();
 });
 
@@ -2071,6 +2206,11 @@ document.addEventListener('fullscreenchange', () => {
 });
 
 document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && isConcertShareOpen) {
+    setConcertShareVisibility(false);
+    return;
+  }
+
   if (event.key === 'Escape' && isMenuOpen) {
     setMenuVisibility(false);
   }

@@ -447,6 +447,11 @@ code {
   margin-top: 16px;
 }
 
+.concert-setlist-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .concert-count {
   min-width: 42px;
   padding: 6px 10px;
@@ -462,6 +467,106 @@ code {
   border: 1px dashed var(--border);
   border-radius: 16px;
   color: var(--muted);
+}
+
+.concert-share-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(28, 20, 13, 0.58);
+}
+
+.concert-share-modal.is-hidden {
+  display: none;
+}
+
+.concert-share-card {
+  width: min(100%, 520px);
+  background: rgba(255, 250, 242, 0.98);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(33, 22, 12, 0.28);
+  padding: 22px;
+}
+
+.concert-share-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.concert-share-close,
+.concert-share-actions button {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+}
+
+.concert-share-close {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.concert-share-actions button {
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.concert-share-close:hover,
+.concert-share-actions button:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.concert-share-status {
+  margin: 14px 0 0;
+  color: var(--muted);
+}
+
+.concert-share-qr-wrap {
+  display: grid;
+  place-items: center;
+  margin-top: 18px;
+}
+
+.concert-share-qr {
+  width: min(100%, 320px);
+  aspect-ratio: 1;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: #fff;
+  object-fit: contain;
+}
+
+.concert-share-link-wrap {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+  color: var(--muted);
+}
+
+.concert-share-link-wrap input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+}
+
+.concert-share-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 
 .content-header {
@@ -1531,6 +1636,10 @@ body.menu-open {
   overflow: hidden;
 }
 
+body.concert-share-open {
+  overflow: hidden;
+}
+
 @media (max-width: 860px) {
   .transpose-panel-inline {
     padding: 8px 10px;
@@ -1696,7 +1805,11 @@ body.scene-mode .viewer-speed-float button {
 
   .concert-setlist-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+  }
+
+  .concert-share-card {
+    padding: 18px;
   }
 
   .viewer-speed-float {

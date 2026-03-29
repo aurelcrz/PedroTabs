@@ -237,6 +237,7 @@
 
             <div class="concert-setlist-actions">
               <button id="concert-start" type="button">Demarrer en mode scene</button>
+              <button id="concert-share" type="button">Partager</button>
               <button id="concert-clear" type="button">Vider</button>
             </div>
 
@@ -294,6 +295,30 @@
           <div id="tab-content">Aucune tablature chargee pour le moment.</div>
         </section>
       </div>
+
+      <section id="concert-share-modal" class="concert-share-modal is-hidden" aria-hidden="true">
+        <div class="concert-share-card">
+          <div class="concert-share-header">
+            <div>
+              <p class="eyebrow">Partage setlist</p>
+              <h2>Scanner sur mobile</h2>
+            </div>
+            <button id="concert-share-close" class="concert-share-close" type="button" aria-label="Fermer le partage">×</button>
+          </div>
+
+          <p id="concert-share-status" class="concert-share-status">Scanne ce QR code pour recuperer la setlist sur mobile.</p>
+          <div class="concert-share-qr-wrap">
+            <img id="concert-share-qr" class="concert-share-qr" alt="QR code de partage de setlist">
+          </div>
+          <label class="concert-share-link-wrap" for="concert-share-link">
+            <span>Lien de partage</span>
+            <input id="concert-share-link" type="text" readonly>
+          </label>
+          <div class="concert-share-actions">
+            <button id="concert-copy-link" type="button">Copier le lien</button>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 
