@@ -123,6 +123,7 @@ let concertPlanIndex = -1;
 let chordAudioContext = null;
 let activeModalChord = null;
 let activeModalChordVariantIndex = 0;
+let wakeLockSentinel = null;
 let appConfig = {
   features: {
     remoteImport: false
@@ -1555,6 +1556,44 @@ async function syncFullscreenState(enable) {
   }
 }
 
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator) || wakeLockSentinel || (!isReadingMode && !isSceneMode)) {
+    return;
+  }
+
+  try {
+    wakeLockSentinel = await navigator.wakeLock.request('screen');
+    wakeLockSentinel.addEventListener('release', () => {
+      wakeLockSentinel = null;
+    });
+  } catch (error) {
+    wakeLockSentinel = null;
+  }
+}
+
+async function releaseWakeLock() {
+  if (!wakeLockSentinel) {
+    return;
+  }
+
+  try {
+    await wakeLockSentinel.release();
+  } catch (error) {
+    // Ignore wake lock release errors.
+  } finally {
+    wakeLockSentinel = null;
+  }
+}
+
+function syncWakeLockForModes() {
+  if (isReadingMode || isSceneMode) {
+    requestWakeLock();
+    return;
+  }
+
+  releaseWakeLock();
+}
+
 function setReadingMode(isEnabled) {
   isReadingMode = isEnabled;
   if (isEnabled && isSceneMode) {
@@ -1572,6 +1611,7 @@ function setReadingMode(isEnabled) {
   readingModeToggle.setAttribute('aria-label', isEnabled ? 'Quitter le mode lecture' : 'Mode lecture');
   readingModeToggle.classList.toggle('is-reading', isEnabled);
   updateSceneSetlistUi();
+  syncWakeLockForModes();
   persistSettings();
 }
 
@@ -1592,6 +1632,7 @@ function setSceneMode(isEnabled) {
   sceneModeToggle.setAttribute('aria-label', isEnabled ? 'Quitter le mode scene' : 'Mode scene');
   sceneModeToggle.classList.toggle('is-scene', isEnabled);
   updateSceneSetlistUi();
+  syncWakeLockForModes();
   persistSettings();
 }
 
@@ -2628,6 +2669,15 @@ document.addEventListener('fullscreenchange', () => {
       setSceneMode(false);
     }
   }
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    syncWakeLockForModes();
+    return;
+  }
+
+  releaseWakeLock();
 });
 
 document.addEventListener('keydown', (event) => {
